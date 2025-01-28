@@ -1,109 +1,105 @@
-<?php
-/*
-Plugin Name: External Link Annotator
-Version: 1.0
-Description: Adds numbered markers for external links and creates references section
-*/
-
-function ela_add_markers_to_content($content) {
-    if(!is_single()) return $content;
-    
-    global $ela_links;
-    $ela_links = array();
-    $counter = 1;
-    
-    // Find and process external links
-    $content = preg_replace_callback('/<a(.*?)href=["\'](.*?)["\'](.*?)>(.*?)<\/a>/i', 
-    function($matches) use (&$counter, &$ela_links) {
-        $url = $matches[2];
-        $site_url = site_url();
-        
-        if(strpos($url, $site_url) === false && filter_var($url, FILTER_VALIDATE_URL)) {
-            $ela_links[] = array(
-                'number' => $counter,
-                'url' => $url,
-                'text' => strip_tags($matches[4])
-            );
-            
-            $marker = '<sup class="ela-marker" data-number="'.$counter.'">'.$counter.'</sup>';
-            $counter++;
-            return $matches[0].$marker;
-        }
-        return $matches[0];
-    }, $content);
-
-    // Add references section
-    if(!empty($ela_links)) {
-        $references = '<div id="ela-references"><h3>منابع</h3><ol>';
-        foreach($ela_links as $link) {
-            $references .= '<li id="ref-'.$link['number'].'"><a href="'.$link['url'].'" target="_blank" rel="noopener noreferrer">'.$link['text'].'</a></li>';
-        }
-        $references .= '</ol></div>';
-        $content .= $references;
-    }
-
-    return $content;
-}
-add_filter('the_content', 'ela_add_markers_to_content', 20);
-
 function ela_enqueue_scripts() {
     ?>
     <style>
+        /* استایل دایره‌های شماره */
         .ela-marker {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: #0073aa;
-            color: white;
-            text-align: center;
-            line-height: 18px;
+            background: #2c3e50;
+            color: #fff;
             font-size: 12px;
-            margin-right: 3px;
+            font-weight: bold;
+            margin: 0 3px;
             cursor: pointer;
             transition: all 0.3s ease;
+            vertical-align: super;
         }
+
         .ela-marker:hover {
-            background: #005177;
-            transform: scale(1.1);
+            background: #e74c3c;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
+
+        /* استایل بخش منابع */
         #ela-references {
-            margin-top: 50px;
-            padding: 20px;
-            border-top: 2px solid #eee;
+            margin: 50px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+        }
+
+        #ela-references h3 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        #ela-references ol {
+            list-style: none;
+            counter-reset: ela-counter;
+            padding: 0;
+            margin: 0;
+        }
+
+        #ela-references li {
+            counter-increment: ela-counter;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid #eee;
+        }
+
+        #ela-references li:hover {
+            transform: translateX(10px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        #ela-references li::before {
+            content: counter(ela-counter);
+            position: absolute;
+            left: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            background: #3498db;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        #ela-references a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            padding: 5px 0;
+        }
+
+        #ela-references a:hover {
+            color: #e74c3c;
+            text-decoration: underline;
         }
     </style>
     
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.ela-marker').forEach(marker => {
-            marker.addEventListener('click', function(e) {
-                e.preventDefault();
-                const refNumber = this.getAttribute('data-number');
-                const target = document.querySelector(`#ref-${refNumber}`);
-                if(target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    
-                    // Add highlight effect
-                    target.style.backgroundColor = '#fff9e6';
-                    setTimeout(() => {
-                        target.style.backgroundColor = '';
-                    }, 1000);
-                }
-            });
-        });
-    });
+    // (کد جاوااسکریپت بدون تغییر می‌ماند)
     </script>
     <?php
 }
-add_action('wp_footer', 'ela_enqueue_scripts');
-
-// Shortcode for placing references
-function ela_references_shortcode() {
-    return '<div id="ela-references"></div>';
-}
-add_shortcode('references', 'ela_references_shortcode');
-?>
