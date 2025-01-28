@@ -1,3 +1,10 @@
+<?php
+/*
+Plugin Name: حاشیه نویس پیوند خارجی
+Version: 2.0
+Description: نشانگرهای شماره گذاری شده را برای پیوندهای خارجی اضافه می کند و بخش مراجع ایجاد می کند
+Author: <a href="https://sajjadakbari.ir">Sajjad Akbari</a>
+*/
 function ela_enqueue_scripts() {
     ?>
     <style>
@@ -9,23 +16,24 @@ function ela_enqueue_scripts() {
             width: 22px;
             height: 22px;
             border-radius: 50%;
-            background: #2c3e50;
-            color: #fff;
+            background: #ff9999; /* تغییر رنگ به قرمز کمرنگ */
+            color: #fff !important; /* تضمین سفید بودن متن */
             font-size: 12px;
             font-weight: bold;
             margin: 0 3px;
             cursor: pointer;
             transition: all 0.3s ease;
             vertical-align: super;
+            text-decoration: none !important;
         }
 
         .ela-marker:hover {
-            background: #e74c3c;
+            background: #ff6666; /* سایه تیره تر برای هاور */
             transform: translateY(-2px);
             box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
 
-        /* استایل بخش منابع */
+        /* بهبود استایل بخش منابع */
         #ela-references {
             margin: 50px 0;
             padding: 30px;
@@ -33,6 +41,7 @@ function ela_enqueue_scripts() {
             border-radius: 8px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.05);
             border-left: 4px solid #3498db;
+            scroll-margin-top: 50px; /* ایجاد فضای اسکرول */
         }
 
         #ela-references h3 {
@@ -89,17 +98,42 @@ function ela_enqueue_scripts() {
             text-decoration: none;
             font-weight: 500;
             display: block;
-            padding: 5px 0;
+            padding: 10px;
+            transition: all 0.3s ease;
+            border-radius: 4px;
         }
 
         #ela-references a:hover {
+            background: rgba(255,102,102,0.1); /* افکت هاور جدید */
+            padding-left: 15px;
             color: #e74c3c;
-            text-decoration: underline;
         }
     </style>
     
     <script>
-    // (کد جاوااسکریپت بدون تغییر می‌ماند)
+    document.addEventListener('DOMContentLoaded', function() {
+        // اسکرول نرم به بخش منابع
+        document.querySelectorAll('.ela-marker').forEach(marker => {
+            marker.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('ela-references').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // افزودن هاور برای لینک‌های مرجع
+        document.querySelectorAll('#ela-references a').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.02)';
+            });
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    });
     </script>
     <?php
 }
+
+// سایر توابع پلاگین بدون تغییر باقی می‌مانند
